@@ -2,6 +2,8 @@
 #include <Wire.h>
 #include <Crc16.h>
 
+//#define IMU_CALIB
+
 #define SW_TRG 4
 #define SW_RLD 5
 #define SW_MODE 6
@@ -20,6 +22,22 @@ void setup() {
   Wire.begin();
   Serial.begin(19200);
   mpu6050.begin();
+
+#ifdef IMU_CALIB
+  double gyro_x_bias = 0, gyro_y_bias = 0, gyro_z_bias = 0;
+  const int SAMPLE_NUM = 300;
+  for(int i=0; i<SAMPLE_NUM; i++) {
+    mpu6050.update();
+    gyro_x_bias += (mpu6050.getGyroX() / SAMPLE_NUM);
+    gyro_y_bias += (mpu6050.getGyroY() / SAMPLE_NUM);
+    gyro_z_bias += (mpu6050.getGyroZ() / SAMPLE_NUM);
+    delay(10);
+  }
+  Serial.println(gyro_x_bias);
+  Serial.println(gyro_y_bias);
+  Serial.println(gyro_z_bias);
+  while(true);
+#endif
 
   pinMode(SW_TRG, INPUT_PULLUP);
   pinMode(SW_RLD, INPUT_PULLUP);
@@ -72,12 +90,15 @@ void loop() {
     }
 
     float gyro_x_raw, gyro_y_raw, gyro_z_raw;
+    const float gyro_x_bias = -1.03;
+    const float gyro_y_bias = 1.35;
+    const float gyro_z_bias = 1.34;
     float acc_x_raw, acc_y_raw, acc_z_raw;
     float ang_bias_z = 3.14 / 6;  // 30 deg
     float tilt, pan;
-    gyro_x_raw = mpu6050.getGyroX();
-    gyro_y_raw = mpu6050.getGyroY();
-    gyro_z_raw = mpu6050.getGyroZ();
+    gyro_x_raw = mpu6050.getGyroX() - gyro_x_bias;
+    gyro_y_raw = mpu6050.getGyroY() - gyro_y_bias;
+    gyro_z_raw = mpu6050.getGyroZ() - gyro_z_bias;
     
     acc_x_raw = mpu6050.getAccX();
     acc_y_raw = mpu6050.getAccY();
