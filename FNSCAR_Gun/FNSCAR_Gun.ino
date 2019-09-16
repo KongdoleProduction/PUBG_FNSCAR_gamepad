@@ -145,7 +145,7 @@ void loop() {
     } else if (joyY < -0.05) {
       movement |= 0b00001000;
     }
-    if (joySize > 0.8) {
+    if (joySize > 0.9) {
       movement |= 0b00010000;
     } else if (joySize > 0.05 && joySize < 0.3) {
       movement |= 0b00100000;
